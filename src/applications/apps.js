@@ -46,9 +46,9 @@ export function getAppChanges() {
 export function registerApplication(name, loadApp, activeWhen, customProps) {
   const registration = {
     name,
-    loadApp,
-    activeWhen,
-    customProps,
+    loadApp: sanitizeLoadApp(loadApp),
+    activeWhen: sanitizeActiveWhen(activeWhen),
+    customProps: sanitizeCustomProps(customProps),
   };
 
   apps.push(
@@ -60,4 +60,21 @@ export function registerApplication(name, loadApp, activeWhen, customProps) {
       registration
     )
   );
+}
+
+function sanitizeLoadApp(loadApp) {
+  if (typeof loadApp !== 'function') {
+    return () => Promise.resolve(loadApp);
+  }
+
+  return loadApp;
+}
+
+function sanitizeActiveWhen(activeWhen) {
+  let activeWhenArray = Array.isArray(activeWhen) ? activeWhen : [activeWhen];
+  return (location) => activeWhenArray.some((activeWhen) => activeWhen(location));
+}
+
+function sanitizeCustomProps(customProps) {
+  return customProps ? customProps : {};
 }

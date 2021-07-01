@@ -3,6 +3,7 @@ import { reroute } from "./navigation/reroute";
 let started = false;
 
 export function start() {
+  started = true;
   reroute();
 }
 
