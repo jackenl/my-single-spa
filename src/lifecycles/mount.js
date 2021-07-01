@@ -1,4 +1,4 @@
-import { MOUNTED, NOT_MOUNTED } from '../applications/helper';
+import { MOUNTED, NOT_MOUNTED, SKIP_BECAUSE_BROKEN } from '../applications/helper';
 
 export function toMountPromise(app) {
   return Promise.resolve().then(() => {
@@ -6,9 +6,15 @@ export function toMountPromise(app) {
       return app;
     }
 
-    app.mount(app.customProps).then(() => {
-      app.status = MOUNTED;
-      return app;
-    });
+    app.mount(app.customProps)
+      .then(() => {
+        app.status = MOUNTED;
+        return app;
+      })
+      .catch((err) => {
+        console.error(err);
+        app.status = SKIP_BECAUSE_BROKEN;
+        return app;
+      });
   });
 }

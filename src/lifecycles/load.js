@@ -18,7 +18,6 @@ export function toLoadPromise(app) {
 
       return loadPromise
         .then((val) => {
-          app.loadErrorTime = null;
           app.status = NOT_BOOTSTRAPPED;
           app.bootstrap = flattenFnArray(val, 'bootstrap');
           app.mount = flattenFnArray(val, 'mount');
@@ -31,7 +30,6 @@ export function toLoadPromise(app) {
         })
         .catch((err) => {
           console.error(err);
-          app.loadErrorTime = new Date().getTime();
           app.status = LOAD_ERROR;
 
           delete app.loadPromise;

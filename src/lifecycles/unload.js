@@ -1,4 +1,4 @@
-import { LOAD_ERROR, NOT_LOADED, NOT_MOUNTED, UNLOADING } from '../applications/helper';
+import { LOAD_ERROR, NOT_LOADED, NOT_MOUNTED, SKIP_BECAUSE_BROKEN, UNLOADING } from '../applications/helper';
 
 const appsToUnload = {};
 
@@ -62,6 +62,15 @@ function errorUnloadingApp(app, unloadInfo, err) {
   delete app.unmount;
   delete app.unload;
 
-  handleAppError(err, app, SKIP_BECAUSE_BROKEN);
+  app.status = SKIP_BECAUSE_BROKEN;
+
+  console.error(err);
   unloadInfo.reject(err);
+}
+
+export function addAppToUnload(app, promise, resolve, reject) {
+  appsToUnload[app.name] = { app, resolve, reject };
+  Object.defineProperty(appsToUnload[app.name], 'promise', {
+    get: promise,
+  });
 }

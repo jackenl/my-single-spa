@@ -1,12 +1,12 @@
 import { isStarted } from '../start';
 import { reroute } from './reroute';
 
-const capturedListeners = {
+const eventListeners = {
   hashchange: [],
   popstate: [],
 };
 
-export const capturedEventNames = ['hashchange', 'popstate'];
+export const eventNames = ['hashchange', 'popstate'];
 
 export function navigateToUrl(url) {
   const destination = parseUri(url);
@@ -17,16 +17,16 @@ export function navigateToUrl(url) {
   }
 }
 
-export function callCapturedListener(eventArgs) {
+export function callEventListener(eventArgs) {
   if (!eventArgs) return;
 
   const eventType = eventArgs[0].type;
-  if (capturedEventNames.indexOf(eventType) >= 0) {
-    capturedListeners[eventType].forEach((listener) => {
+  if (eventNames.indexOf(eventType) >= 0) {
+    eventListeners[eventType].forEach((listener) => {
       try {
         listener.apply(this, eventArgs);
-      } catch (e) {
-        throw e;
+      } catch (err) {
+        throw err;
       }
     });
   }
@@ -75,18 +75,18 @@ const originAddEventListener = window.addEventListener;
 const originRemoveEventListener = window.removeEventListener;
 window.addEventListener = function (eventName, fn) {
   if (
-    capturedEventNames.indexOf(eventName) >= 0 &&
-    !find(capturedListeners[eventName], (listener) => listener === fn)
+    eventNames.indexOf(eventName) >= 0 &&
+    !find(eventListeners[eventName], (listener) => listener === fn)
   ) {
-    capturedListeners[eventName].push(fn);
+    eventListeners[eventName].push(fn);
     return;
   }
 
   return originAddEventListener.apply(this, arguments);
 };
 window.removeEventListener = function (eventName, fn) {
-  if (capturedEventNames.indexOf(eventName) >= 0) {
-    capturedListeners[eventName] = capturedListeners[eventName].filter((listener) => listener !== fn);
+  if (eventNames.indexOf(eventName) >= 0) {
+    eventListeners[eventName] = eventListeners[eventName].filter((listener) => listener !== fn);
     return;
   }
 

@@ -1,4 +1,4 @@
-import { getAppChanges } from '../applications/apps';
+import { getAppChanges, getMountedApps } from '../applications/apps';
 import { shouldBeActive } from '../applications/helper';
 import { toBootstrapPromise } from '../lifecycles/bootstrap';
 import { toLoadPromise } from '../lifecycles/load';
@@ -6,11 +6,9 @@ import { toMountPromise } from '../lifecycles/mount';
 import { toUnloadPromise } from '../lifecycles/unload';
 import { toUnmountPromise } from '../lifecycles/unmount';
 import { isStarted } from '../start';
-import { callCapturedListener } from './navigation';
+import { callEventListener } from './navigation';
 
-let appChangeUnderway = false,
-  waitingOnAppChange = [],
-  currentUrl = window.location.href;
+let appChangeUnderway = false, waitingOnAppChange = [];
 
 export function reroute(pendingPromises = [], eventArgs) {
   if (appChangeUnderway) {
@@ -29,16 +27,11 @@ export function reroute(pendingPromises = [], eventArgs) {
     appsToLoad,
     appsToMount,
   } = getAppChanges();
-  let appsThatChanged,
-    orlUrl = currentUrl,
-    newUrl = (currentUrl = window.location.href);
 
   if (isStarted()) {
     appChangeUnderway = true;
-    appsThatChanged = appsToUnload.concat(appsToLoad, appsToUnmount, appsToMount);
     return preformAppChanges();
   } else {
-    appsThatChanged = appsToLoad;
     return loadApps();
   }
 
@@ -48,7 +41,6 @@ export function reroute(pendingPromises = [], eventArgs) {
 
       return Promise.all(loadPromises)
         .then(callAllEventListeners)
-        .then(() => [])
         .catch((err) => {
           callAllEventListeners();
           throw err;
@@ -59,18 +51,17 @@ export function reroute(pendingPromises = [], eventArgs) {
   function preformAppChanges() {
     return Promise.resolve().then(() => {
       const unloadPromises = appsToUnload.map(toUnloadPromise);
-      const unmountPromises = appsToUnmount.map(toUnmountPromise)
+      const unmountPromises = appsToUnmount
+        .map(toUnmountPromise)
         .map((promise) => promise.then(toUnloadPromise));
       const unmountAllPromises = Promise.all(unmountPromises.concat(unloadPromises));
   
       const loadPromises = appsToLoad.map((app) => {
         return toLoadPromise(app).then((app) => {
           bootstrapAndMount(app);
-        })
-      })
-      const mountPromises = appsToMount.map((app) => {
-        return bootstrapAndMount(app);
+        });
       });
+      const mountPromises = appsToMount.map((app) => bootstrapAndMount(app));
 
       return unmountAllPromises
         .then(() => {
@@ -85,7 +76,8 @@ export function reroute(pendingPromises = [], eventArgs) {
   }
 
   function finishUpAndReturn() {
-    pendingPromises.forEach((promise) => promise.resolve());
+    const returnValue = getMountedApps();
+    pendingPromises.forEach((promise) => promise.resolve(returnValue));
 
     appChangeUnderway = false;
 
@@ -94,20 +86,24 @@ export function reroute(pendingPromises = [], eventArgs) {
       waitingOnAppChange = [];
       reroute(nextPromises);
     }
+
+    return returnValue;
   }
 
   function callAllEventListeners() {
     pendingPromises.forEach((promise) => {
-      callCapturedListener(promise.eventArgs);
+      callEventListener(promise.eventArgs);
     });
 
-    callCapturedListener(eventArgs);
+    callEventListener(eventArgs);
   }
 }
 
 function bootstrapAndMount(app) {
   if (shouldBeActive(app)) {
-    return toBootstrapPromise(app).then(toMountPromise);
+    return toBootstrapPromise(app).then((app) => {
+      return shouldBeActive(app) ? toMountPromise(app) : app;
+    });
   }
   return app;
 }

@@ -1,4 +1,14 @@
-import { LOADING_SOURCE_CODE, LOAD_ERROR, MOUNTED, NOT_BOOTSTRAPPED, NOT_LOADED, NOT_MOUNTED, shouldBeActive, SKIP_BECAUSE_BROKEN } from './helper';
+import {
+  isActive,
+  LOADING_SOURCE_CODE,
+  LOAD_ERROR,
+  MOUNTED,
+  NOT_BOOTSTRAPPED,
+  NOT_LOADED,
+  NOT_MOUNTED,
+  shouldBeActive,
+  SKIP_BECAUSE_BROKEN,
+} from './helper';
 
 const apps = [];
 
@@ -11,12 +21,11 @@ export function getAppChanges() {
   const currentTime = new Date().getTime();
 
   apps.forEach((app) => {
-    const appShouldBeActive = apps.status !== SKIP_BECAUSE_BROKEN
-      && shouldBeActive(app);
+    const appShouldBeActive = apps.status !== SKIP_BECAUSE_BROKEN && shouldBeActive(app);
 
     switch (app.status) {
       case LOAD_ERROR:
-        if (appShouldBeActive && currentTime - app.loadErrorTime >= 200) {
+        if (appShouldBeActive) {
           appsToLoad.push(app);
         }
         break;
@@ -54,7 +63,6 @@ export function registerApplication(name, loadApp, activeWhen, customProps) {
   apps.push(
     Object.assign(
       {
-        loadErrorTime: null,
         status: NOT_LOADED,
       },
       registration
@@ -77,4 +85,8 @@ function sanitizeActiveWhen(activeWhen) {
 
 function sanitizeCustomProps(customProps) {
   return customProps ? customProps : {};
+}
+
+export function getMountedApps() {
+  return apps.filter(isActive).map((app) => app.name);
 }
