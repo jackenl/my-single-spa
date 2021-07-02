@@ -74,3 +74,7 @@ export function addAppToUnload(app, promise, resolve, reject) {
     get: promise,
   });
 }
+
+export function getAppUnloadInfo(appName) {
+  return appsToUnload[appName];
+}

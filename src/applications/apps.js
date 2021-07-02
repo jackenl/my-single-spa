@@ -1,3 +1,4 @@
+import { getAppUnloadInfo } from '../lifecycles/unload';
 import {
   isActive,
   LOADING_SOURCE_CODE,
@@ -18,8 +19,6 @@ export function getAppChanges() {
     appsToLoad = [],
     appsToMount = [];
 
-  const currentTime = new Date().getTime();
-
   apps.forEach((app) => {
     const appShouldBeActive = apps.status !== SKIP_BECAUSE_BROKEN && shouldBeActive(app);
 
@@ -37,7 +36,9 @@ export function getAppChanges() {
         break;
       case NOT_BOOTSTRAPPED:
       case NOT_MOUNTED:
-        if (appShouldBeActive) {
+        if (!appShouldBeActive && getAppUnloadInfo(app.name)) {
+          appsToUnload.push(app);
+        } else if (appShouldBeActive) {
           appsToMount.push(app);
         }
         break;

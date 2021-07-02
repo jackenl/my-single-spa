@@ -11,7 +11,7 @@ module.exports = {
   devtool: 'source-map',
   resolve: {
     alias: {
-      'my-single-spa': path.resolve(__dirname, '../lib/my-single-spa.js'),
+      'my-single-spa': path.resolve(__dirname, '../src/my-single-spa.js'),
     },
   },
   devServer: {
