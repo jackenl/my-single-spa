@@ -14,6 +14,10 @@ npm run dev
 
 然后在浏览器中访问：http://localhost:9000
 
+效果展示：
+
+![test](images/test.gif)
+
 ## 项目构建
 
 ```
