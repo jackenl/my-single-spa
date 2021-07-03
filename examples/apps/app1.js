@@ -2,13 +2,14 @@ let hEle;
 
 export function bootstrap() {
   Promise.resolve().then(() => {
-    hEle = document.createElement('h3');
-    hEle.innerText = 'This is App1';
+    console.log('bootstrap1');
   });
 }
 
 export function mount() {
   Promise.resolve().then(() => {
+    hEle = document.createElement('h3');
+    hEle.innerText = 'This is App1';
     document.body.appendChild(hEle);
   });
 }
