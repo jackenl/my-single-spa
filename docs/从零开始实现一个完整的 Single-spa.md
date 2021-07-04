@@ -385,10 +385,8 @@ Single-spa 的整个生命周期执行流程其实也就是应用更改函数`re
 
 从前面的 Single-spa 的应用注册、运行，到设置路由拦截，再到应用的切换和用于应用切换的生命周期管理，我们已经完整的分析了 Single-spa 微前端框架的实现逻辑，接下来就是具体的实践了。
 
-具体代码实现见仓库地址：https://github.com/jackenl/my-Single-spa
+具体代码实现见仓库地址：https://github.com/jackenl/my-single-spa
 
-至此，从零开始实现一个完整的 Single-spa 微前端框架教程就大功告成啦
-
-！
+至此，从零开始实现一个完整的 Single-spa 微前端框架教程就大功告成啦！
 
 如有疑问，欢迎评论交流。
