@@ -1,6 +1,7 @@
 import { isStarted } from '../start';
 import { reroute } from './reroute';
 
+// 用于收集路由事件监听器
 const eventListeners = {
   hashchange: [],
   popstate: [],
@@ -17,7 +18,7 @@ export function navigateToUrl(url) {
   }
 }
 
-export function callEventListener(eventArgs) {
+export function callCapturedEventListeners(eventArgs) {
   if (!eventArgs) return;
 
   const eventType = eventArgs[0].type;
@@ -50,8 +51,10 @@ function patchedUpdateState(updateState, methodName) {
 
     if (urlBefore !== urlAfter) {
       if (isStarted()) {
+        // 如果已启动，则正常分发 history 事件
         window.dispatchEvent(createPopStateEvent(window.history.state, methodName));
       } else {
+        // 否则初始化应用生命周期
         reroute([]);
       }
     }
@@ -68,9 +71,11 @@ function createPopStateEvent(state, methodName) {
   return evt;
 }
 
+// 监听路由事件触发修改应用生命周期
 window.addEventListener('hashchange', urlReroute);
 window.addEventListener('popstate', urlReroute);
 
+// 重写事件监听器添加和移除函数，拦截和收集路由事件监听器
 const originAddEventListener = window.addEventListener;
 const originRemoveEventListener = window.removeEventListener;
 window.addEventListener = function (eventName, fn) {
@@ -93,6 +98,7 @@ window.removeEventListener = function (eventName, fn) {
   return originRemoveEventListener.apply(this, arguments);
 };
 
+// 重写 history API，判断微前端是否已启动，匹配对应对应操作
 window.history.pushState = patchedUpdateState(window.history.pushState, 'pushState');
 window.history.replaceState = patchedUpdateState(window.history.replaceState, 'replaceState');
 

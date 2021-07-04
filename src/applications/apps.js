@@ -11,6 +11,7 @@ import {
   SKIP_BECAUSE_BROKEN,
 } from './helper';
 
+// 用于存储注册的应用
 const apps = [];
 
 export function getAppChanges() {
@@ -64,7 +65,7 @@ export function registerApplication(name, loadApp, activeWhen, customProps) {
   apps.push(
     Object.assign(
       {
-        status: NOT_LOADED,
+        status: NOT_LOADED, // 应用初始状态
       },
       registration
     )
@@ -72,6 +73,7 @@ export function registerApplication(name, loadApp, activeWhen, customProps) {
 }
 
 function sanitizeLoadApp(loadApp) {
+  // 保证loadApp执行返回的是promise
   if (typeof loadApp !== 'function') {
     return () => Promise.resolve(loadApp);
   }
