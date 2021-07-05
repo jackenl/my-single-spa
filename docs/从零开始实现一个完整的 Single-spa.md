@@ -376,6 +376,7 @@ function bootstrapAndMount(app) {
 为了更好的管理所有子应用，保证匹配加载和卸载到正确的子应用，Single-spa 框架实现了一套完善的应用生命周期流程。其中每个子应用存在12个生命周期状态，每个状态的转换流程如下：
 
 ![](../images/single-spa生命周期.png)
+参考自https://github.com/YataoZhang/my-single-spa/issues/4
 
 从 loadApp 函数执行加载对应子应用后，根据子应用的路由匹配函数`activeWhen`返回的匹配结果执行子应用对应的生命周期函数，挂载匹配到子应用，卸载未匹配到的子应用，设置路由事件监听，监听路由变化不断循环执行该生命周期流程。
 
