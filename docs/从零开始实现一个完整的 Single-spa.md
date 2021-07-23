@@ -19,7 +19,7 @@ Single-spa 的核心执行流程大致如下：
 Single-spa 框架的使用方法如下：
 
 ```js
-// 申明子应用
+// 声明子应用
 const app = {
   bootstrap: () => Promise.resolve(), //bootstrap function
   mount: () => Promise.resolve(), //mount function
@@ -35,7 +35,7 @@ singleSpa.start();
 
 sing-spa 的应用主要分为三个步骤：
 
-1. 申明子应用，暴露子应用生命周期，包括：`bootstrap`、`mount`、`unmount`、`update`。
+1. 声明子应用，暴露子应用生命周期，包括：`bootstrap`、`mount`、`unmount`、`update`。
 2. 调用`singleSpa.registerApplication`函数进行子应用注册。
 3. 最后执行`singleSpa.start`函数开始运行微前端。
 
@@ -380,6 +380,35 @@ function bootstrapAndMount(app) {
 
 从 loadApp 函数执行加载对应子应用后，根据子应用的路由匹配函数`activeWhen`返回的匹配结果执行子应用对应的生命周期函数，挂载匹配到子应用，卸载未匹配到的子应用，设置路由事件监听，监听路由变化不断循环执行该生命周期流程。
 
+Single-spa 生命周期的顺序执行遵行链式的调用顺序，而生命周期的链式调用则是基于`Promise`来实现的，以下便是所有生命周期执行函数的**伪代码**：
+
+``` js
+function toLifecyclePromise(app) {
+  // 通过 promise 链式调用，返回 app 用于下一个生命周期的执行
+  return Promise.resolve().then(() => {
+    // 判断 app 状态是否为生命周期的前置状态，如果不符合直接返回
+    if (app.status !== preStatus) {
+      return app;
+    }
+
+    app.status = currentStatus; // 修改状态为进行状态
+    // 执行 app 生命周期函数
+    return app.lifecycle(app.customProps)
+      .then(() => {
+        ... // 生命周期函数执行结果处理
+        app.status = endStatus; // 修改状态为结束状态
+        return app;
+      })
+      .catch((err) => {
+        app.status = errStatus // 修改状态为结束状态
+        return app;
+      });
+  });
+}
+```
+
+生命周期执行函数内部都会返回一个`promise`对象，`promise`内部都会返回当前 app 对象，用于传递给下一个生命周期继续执行。`promise`内部首先判断 app 的状态`status`是否为当前生命周期的前置状态，如果不是则直接返回，然后修改 app 的状态`status`为当前生命周期的进行状态，接着执行 app 当前生命周期函数，在生命周期函数执行结束后处理执行结果，同时修改 app 的状态`status`为当前生命周期的结束状态，最终返回当前 app 对象，完成一个生命周期执行函数的执行。
+
 Single-spa 的整个生命周期执行流程其实也就是应用更改函数`reoute`的核心执行流程，如果你对前面的应用更改函数的逻辑还有疑问的话，建议翻到前面结合该图进行梳理，相信你就能够很好的理解 Single-spa 的核心实现了。
 
 ## 具体实践
@@ -390,4 +419,4 @@ Single-spa 的整个生命周期执行流程其实也就是应用更改函数`re
 
 至此，从零开始实现一个完整的 Single-spa 微前端框架教程就大功告成啦！
 
-如有疑问，欢迎评论交流。
+如有疑问，欢迎评论交流！
